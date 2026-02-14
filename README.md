@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-# MobilityGraph
-=======
-<<<<<<< HEAD
-# MobilityGraph
-=======
+
 # MobilityGraph
 
 Sistem Semantic Web/Knowledge Graph untuk perencanaan rute wisata Jakarta berbasis RDF/Turtle.
