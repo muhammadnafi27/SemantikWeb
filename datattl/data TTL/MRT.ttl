@@ -1,0 +1,125 @@
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix schema1: <http://schema.org/> .
+@prefix tr: <http://example.com/tr#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Operator ---
+tr:Op_MRTJakarta a tr:Operator ;
+    schema1:name "MRT Jakarta" .
+
+# --- Stop Points (Stasiun) ---
+
+tr:Stop_MRT_01 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Lebak Bulus Grab" ;
+    geo1:lat "-6.289380" ;
+    geo1:long "106.774920" .
+
+tr:Stop_MRT_02 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Fatmawati Indomaret" ;
+    geo1:lat "-6.292475" ;
+    geo1:long "106.793955" .
+
+tr:Stop_MRT_03 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Cipete Raya" ;
+    geo1:lat "-6.278430" ;
+    geo1:long "106.797370" .
+
+tr:Stop_MRT_04 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Haji Nawi" ;
+    geo1:lat "-6.266490" ;
+    geo1:long "106.797550" .
+
+tr:Stop_MRT_05 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Blok A" ;
+    geo1:lat "-6.255310" ;
+    geo1:long "106.797210" .
+
+tr:Stop_MRT_06 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Blok M BCA" ;
+    geo1:lat "-6.244540" ;
+    geo1:long "106.798340" .
+
+tr:Stop_MRT_07 a tr:StopPoint ;
+    schema1:name "Stasiun MRT ASEAN" ;
+    geo1:lat "-6.238830" ;
+    geo1:long "106.798870" .
+
+tr:Stop_MRT_08 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Senayan Mastercard" ;
+    geo1:lat "-6.226850" ;
+    geo1:long "106.800840" .
+
+tr:Stop_MRT_09 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Istora Mandiri" ;
+    geo1:lat "-6.221390" ;
+    geo1:long "106.808610" .
+
+tr:Stop_MRT_10 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Bendungan Hilir" ;
+    geo1:lat "-6.215410" ;
+    geo1:long "106.815440" .
+
+tr:Stop_MRT_11 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Setiabudi Astra" ;
+    geo1:lat "-6.208750" ;
+    geo1:long "106.820450" .
+
+tr:Stop_MRT_12 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Dukuh Atas BNI" ;
+    geo1:lat "-6.202130" ;
+    geo1:long "106.822760" .
+
+tr:Stop_MRT_13 a tr:StopPoint ;
+    schema1:name "Stasiun MRT Bundaran HI" ;
+    geo1:lat "-6.192760" ;
+    geo1:long "106.823030" .
+
+# --- Transport Options (Layanan) ---
+
+tr:Transport_MRT_NS a tr:TransportOption ;
+    tr:hasRoute tr:RoutePath_MRT_NS_NB ;
+    tr:operatedBy tr:Op_MRTJakarta ;
+    tr:price 14000 ; # Harga maksimal (variabel berdasarkan jarak)
+    schema1:name "MRT North-South Line (Lebak Bulus - Bundaran HI)" .
+
+tr:Transport_MRT_SN a tr:TransportOption ;
+    tr:hasRoute tr:RoutePath_MRT_NS_SB ;
+    tr:operatedBy tr:Op_MRTJakarta ;
+    tr:price 14000 ; # Harga maksimal (variabel berdasarkan jarak)
+    schema1:name "MRT North-South Line (Bundaran HI - Lebak Bulus)" .
+
+# --- Routes (Jalur) ---
+
+# Arah Utara (Northbound): Lebak Bulus -> Bundaran HI
+tr:RoutePath_MRT_NS_NB a tr:Route ;
+    tr:stopAt tr:Stop_MRT_01,
+        tr:Stop_MRT_02,
+        tr:Stop_MRT_03,
+        tr:Stop_MRT_04,
+        tr:Stop_MRT_05,
+        tr:Stop_MRT_06,
+        tr:Stop_MRT_07,
+        tr:Stop_MRT_08,
+        tr:Stop_MRT_09,
+        tr:Stop_MRT_10,
+        tr:Stop_MRT_11,
+        tr:Stop_MRT_12,
+        tr:Stop_MRT_13 ;
+    schema1:name "Rute Fisik MRT Lebak Bulus - Bundaran HI" .
+
+# Arah Selatan (Southbound): Bundaran HI -> Lebak Bulus
+tr:RoutePath_MRT_NS_SB a tr:Route ;
+    tr:stopAt tr:Stop_MRT_13,
+        tr:Stop_MRT_12,
+        tr:Stop_MRT_11,
+        tr:Stop_MRT_10,
+        tr:Stop_MRT_09,
+        tr:Stop_MRT_08,
+        tr:Stop_MRT_07,
+        tr:Stop_MRT_06,
+        tr:Stop_MRT_05,
+        tr:Stop_MRT_04,
+        tr:Stop_MRT_03,
+        tr:Stop_MRT_02,
+        tr:Stop_MRT_01 ;
+    schema1:name "Rute Fisik MRT Bundaran HI - Lebak Bulus" .

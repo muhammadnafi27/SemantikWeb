@@ -1,0 +1,53 @@
+@prefix schema1: <http://schema.org/> .
+@prefix mg: <http://example.org/mobilitygraph#> .
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+
+# === REGIONS (Wilayah Jakarta) ===
+
+mg:JakartaPusat a mg:Region ;
+    schema1:name "Jakarta Pusat" ;
+    schema1:description "Pusat pemerintahan dan bisnis Jakarta" ;
+    geo1:lat "-6.1865" ;
+    geo1:long "106.8342" .
+
+mg:JakartaUtara a mg:Region ;
+    schema1:name "Jakarta Utara" ;
+    schema1:description "Kawasan pelabuhan dan industri" ;
+    geo1:lat "-6.1384" ;
+    geo1:long "106.8635" .
+
+mg:JakartaBarat a mg:Region ;
+    schema1:name "Jakarta Barat" ;
+    schema1:description "Kawasan perumahan dan industri" ;
+    geo1:lat "-6.1685" ;
+    geo1:long "106.7642" .
+
+mg:JakartaTimur a mg:Region ;
+    schema1:name "Jakarta Timur" ;
+    schema1:description "Kawasan perumahan terluas di Jakarta" ;
+    geo1:lat "-6.2251" ;
+    geo1:long "106.9005" .
+
+mg:JakartaSelatan a mg:Region ;
+    schema1:name "Jakarta Selatan" ;
+    schema1:description "Kawasan bisnis dan perumahan elite" ;
+    geo1:lat "-6.2615" ;
+    geo1:long "106.8106" .
+
+mg:Tangerang a mg:Region ;
+    schema1:name "Tangerang" ;
+    schema1:description "Kota penyangga di barat Jakarta" ;
+    geo1:lat "-6.1783" ;
+    geo1:long "106.6319" .
+
+mg:Bekasi a mg:Region ;
+    schema1:name "Bekasi" ;
+    schema1:description "Kota penyangga di timur Jakarta" ;
+    geo1:lat "-6.2383" ;
+    geo1:long "106.9756" .
+
+mg:Depok a mg:Region ;
+    schema1:name "Depok" ;
+    schema1:description "Kota penyangga di selatan Jakarta" ;
+    geo1:lat "-6.4025" ;
+    geo1:long "106.7942" .

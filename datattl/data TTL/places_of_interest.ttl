@@ -1,0 +1,70 @@
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix schema1: <http://schema.org/> .
+@prefix mg: <http://example.org/mobilitygraph#> .
+@prefix tr: <http://example.com/tr#> .
+
+# === PLACES OF INTEREST (Tempat Wisata Jakarta) ===
+
+mg:Ancol a mg:PlaceOfInterest ;
+    schema1:name "Ancol Dreamland" ;
+    schema1:description "Taman rekreasi pantai terbesar di Jakarta" ;
+    geo1:lat "-6.1249" ;
+    geo1:long "106.8456" ;
+    mg:inRegion mg:JakartaUtara ;
+    mg:category "Recreation" .
+
+mg:KotaTua a mg:PlaceOfInterest ;
+    schema1:name "Kota Tua Jakarta" ;
+    schema1:description "Kawasan bersejarah dengan bangunan kolonial Belanda" ;
+    geo1:lat "-6.1352" ;
+    geo1:long "106.8133" ;
+    mg:inRegion mg:JakartaUtara ;
+    mg:category "Historical" .
+
+mg:TMII a mg:PlaceOfInterest ;
+    schema1:name "Taman Mini Indonesia Indah" ;
+    schema1:description "Taman budaya dengan replika rumah adat seluruh Indonesia" ;
+    geo1:lat "-6.3024" ;
+    geo1:long "106.8951" ;
+    mg:inRegion mg:JakartaTimur ;
+    mg:category "Cultural" .
+
+mg:Monas a mg:PlaceOfInterest ;
+    schema1:name "Monumen Nasional (Monas)" ;
+    schema1:description "Monumen kemerdekaan Indonesia setinggi 132 meter" ;
+    geo1:lat "-6.1754" ;
+    geo1:long "106.8272" ;
+    mg:inRegion mg:JakartaPusat ;
+    mg:category "Historical" .
+
+mg:GBK a mg:PlaceOfInterest ;
+    schema1:name "Gelora Bung Karno" ;
+    schema1:description "Kompleks olahraga terbesar di Jakarta" ;
+    geo1:lat "-6.2186" ;
+    geo1:long "106.8019" ;
+    mg:inRegion mg:JakartaPusat ;
+    mg:category "Sports" .
+
+mg:RagunanZoo a mg:PlaceOfInterest ;
+    schema1:name "Kebun Binatang Ragunan" ;
+    schema1:description "Kebun binatang tertua di Indonesia" ;
+    geo1:lat "-6.3125" ;
+    geo1:long "106.8203" ;
+    mg:inRegion mg:JakartaSelatan ;
+    mg:category "Recreation" .
+
+mg:PlazaIndonesia a mg:PlaceOfInterest ;
+    schema1:name "Plaza Indonesia" ;
+    schema1:description "Pusat perbelanjaan mewah di Bundaran HI" ;
+    geo1:lat "-6.1931" ;
+    geo1:long "106.8225" ;
+    mg:inRegion mg:JakartaPusat ;
+    mg:category "Shopping" .
+
+mg:BlokM a mg:PlaceOfInterest ;
+    schema1:name "Blok M" ;
+    schema1:description "Kawasan perbelanjaan dan hiburan di Jakarta Selatan" ;
+    geo1:lat "-6.2441" ;
+    geo1:long "106.7984" ;
+    mg:inRegion mg:JakartaSelatan ;
+    mg:category "Shopping" .

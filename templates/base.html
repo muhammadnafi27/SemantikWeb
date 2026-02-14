@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MobilityGraph{% endblock %} - Jakarta Route Planner</title>
+    <meta name="description"
+        content="{% block description %}Perencanaan rute wisata Jakarta dengan MRT, LRT, dan TransJakarta{% endblock %}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        mrt: '#e63946',
+                        lrt: '#f4a261',
+                        tj: '#2a9d8f',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .light .glass {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Animated gradient */
+        .gradient-animated {
+            background: linear-gradient(-45deg, #0ea5e9, #8b5cf6, #ec4899, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Mode badge styles */
+        .mode-mrt {
+            background: linear-gradient(135deg, #e63946, #c81e30);
+        }
+
+        .mode-lrt {
+            background: linear-gradient(135deg, #f4a261, #e87f17);
+        }
+
+        .mode-tj {
+            background: linear-gradient(135deg, #2a9d8f, #1e7268);
+        }
+
+        /* Card hover effect */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark .card-hover:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Region badge colors */
+        .badge-jakarta-pusat {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .badge-jakarta-selatan {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .badge-jakarta-timur {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .badge-jakarta-barat {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .badge-jakarta-utara {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* Transport stat popup animation */
+        .transport-stat-item {
+            transition: transform 0.3s ease;
+        }
+
+        .transport-stat-item:hover {
+            transform: scale(1.05);
+        }
+
+        .transport-icon {
+            transition: all 0.3s ease;
+        }
+
+        .transport-stat-item:hover .transport-icon {
+            transform: scale(1.15);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes popup {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .transport-stat-item:hover .transport-icon svg {
+            animation: popup 0.5s ease;
+        }
+
+        /* Theme Toggle Animations */
+        #theme-toggle {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #theme-toggle:hover::before {
+            opacity: 1;
+        }
+
+        #theme-toggle:active {
+            transform: scale(0.9);
+        }
+
+        /* Sun/Moon icon animations */
+        #theme-toggle svg {
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #theme-toggle:hover svg {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        /* Sun icon specific animation */
+        .dark #theme-toggle svg.text-amber-300 {
+            animation: sunRise 0.6s ease-out;
+        }
+
+        /* Moon icon specific animation */
+        html:not(.dark) #theme-toggle svg:not(.text-amber-300) {
+            animation: moonRise 0.6s ease-out;
+        }
+
+        @keyframes sunRise {
+            0% {
+                transform: rotate(-90deg) scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: rotate(20deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes moonRise {
+            0% {
+                transform: rotate(90deg) scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: rotate(-20deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Smooth theme transition for all elements */
+        html.theme-transition,
+        html.theme-transition *,
+        html.theme-transition *::before,
+        html.theme-transition *::after {
+            transition: background-color 0.5s ease,
+                background 0.5s ease,
+                color 0.4s ease,
+                border-color 0.4s ease,
+                box-shadow 0.4s ease,
+                fill 0.4s ease,
+                stroke 0.4s ease !important;
+        }
+
+        /* Glow effect for toggle button */
+        #theme-toggle {
+            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            transition: all 0.3s ease, box-shadow 0.5s ease;
+        }
+
+        .dark #theme-toggle {
+            box-shadow: 0 0 15px 2px rgba(251, 191, 36, 0.3);
+        }
+
+        html:not(.dark) #theme-toggle {
+            box-shadow: 0 0 15px 2px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Pulse animation on click */
+        @keyframes themePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        #theme-toggle.pulse {
+            animation: themePulse 0.6s ease-out;
+        }
+
+        /* Screen flash effect on theme change */
+        .theme-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-flash.active {
+            opacity: 1;
+            animation: flashFade 0.5s ease-out forwards;
+        }
+
+        .dark .theme-flash {
+            background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+        }
+
+        html:not(.dark) .theme-flash {
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        }
+
+        @keyframes flashFade {
+            0% {
+                opacity: 0.8;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        /* Navigation text links with border-bottom hover */
+        .nav-text-link {
+            position: relative;
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #a855f7, #6366f1);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-text-link:hover {
+            color: #ffffff;
+        }
+
+        .nav-text-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-text-link.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .nav-text-link.active::after {
+            transform: scaleX(1);
+        }
+
+        .dark .nav-text-link {
+            color: rgba(203, 213, 225, 0.9);
+        }
+
+        .dark .nav-text-link:hover,
+        .dark .nav-text-link.active {
+            color: #38bdf8;
+        }
+
+        .dark .nav-text-link::after {
+            background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+        }
+
+            {
+            % block extra_styles %
+        }
+
+            {
+            % endblock %
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-full flex flex-col bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <!-- Navbar -->
+    <nav
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 border-b border-indigo-500/30 dark:border-slate-700 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shadow-md backdrop-blur-sm">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">MobilityGraph</h1>
+                        <p class="text-xs text-white/70">Jakarta Route Planner</p>
+                    </div>
+                </a>
+
+                <!-- Navigation Links - Text Style with Border Hover -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/" class="nav-text-link {% if request.path == '/' %}active{% endif %}">
+                        Rencana Rute
+                    </a>
+                    <a href="/favorites"
+                        class="nav-text-link {% if request.path == '/favorites' or request.path.startswith('/favorites/') %}active{% endif %}">
+                        Destinasi
+                    </a>
+                    <a href="/about" class="nav-text-link {% if request.path == '/about' %}active{% endif %}">
+                        Tentang Kami
+                    </a>
+                </div>
+
+                <!-- Right Side -->
+                <div class="flex items-center gap-3">
+                    <!-- User/Admin Icon -->
+                    <a href="/admin/login"
+                        class="p-2 rounded-lg bg-white/20 dark:bg-slate-700 hover:bg-white/30 dark:hover:bg-sky-900/50 text-white dark:text-slate-300 hover:text-white dark:hover:text-sky-400 transition-colors"
+                        title="Admin">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </a>
+
+                    <!-- Dark/Light Mode Toggle -->
+                    <button id="theme-toggle"
+                        class="p-2 rounded-lg bg-white/20 dark:bg-slate-700 hover:bg-white/30 dark:hover:bg-slate-600 text-white transition-colors"
+                        title="Toggle theme">
+                        <!-- Sun icon (shown in dark mode) -->
+                        <svg class="w-5 h-5 text-amber-300 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <!-- Moon icon (shown in light mode) -->
+                        <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn"
+                        class="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-white/20">
+            <div class="px-4 py-3 space-y-2">
+                <a href="/"
+                    class="block px-3 py-2 rounded-lg text-white/80 hover:bg-white/20 hover:text-white {% if request.path == '/' %}bg-white/10 font-semibold{% endif %}">Rencana
+                    Rute</a>
+                <a href="/favorites"
+                    class="block px-3 py-2 rounded-lg text-white/80 hover:bg-white/20 hover:text-white {% if request.path == '/favorites' %}bg-white/10 font-semibold{% endif %}">Destinasi</a>
+                <a href="/about"
+                    class="block px-3 py-2 rounded-lg text-white/80 hover:bg-white/20 hover:text-white {% if request.path == '/about' %}bg-white/10 font-semibold{% endif %}">Tentang
+                    Kami</a>
+                <a href="/admin/login"
+                    class="block px-3 py-2 rounded-lg text-white/80 hover:bg-white/20 hover:text-white">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Brand with Logo -->
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold text-white">MobilityGraph</span>
+                            <p class="text-xs text-white/70">Jakarta Route Planner</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-white/70">
+                        Aplikasi perencanaan rute wisata Jakarta berbasis Knowledge Graph dengan integrasi MRT, LRT, dan
+                        TransJakarta.
+                    </p>
+                </div>
+
+                <!-- Transport Stats with Bus and Train Icons -->
+                <div>
+                    <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                        Data Transportasi Jakarta</h3>
+                    <div class="space-y-3">
+                        <!-- MRT with Train Icon -->
+                        <div class="flex items-center gap-3 transport-stat-item">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center transport-icon">
+                                <!-- Train Icon -->
+                                <svg class="w-6 h-6 text-red-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zm0 2c3.51 0 4.96.48 5.57 1H6.43c.61-.52 2.06-1 5.57-1zM6 7h5v3H6V7zm7 0h5v3h-5V7zm-4.5 6c.83 0 1.5.67 1.5 1.5S9.33 16 8.5 16 7 15.33 7 14.5 7.67 13 8.5 13zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="font-bold text-lg text-white" id="mrt-count">13</span>
+                                <span class="text-white/70 text-sm"> Stasiun MRT</span>
+                            </div>
+                        </div>
+                        <!-- LRT with Train Icon -->
+                        <div class="flex items-center gap-3 transport-stat-item">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center transport-icon">
+                                <!-- Train Icon -->
+                                <svg class="w-6 h-6 text-orange-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zm0 2c3.51 0 4.96.48 5.57 1H6.43c.61-.52 2.06-1 5.57-1zM6 7h5v3H6V7zm7 0h5v3h-5V7zm-4.5 6c.83 0 1.5.67 1.5 1.5S9.33 16 8.5 16 7 15.33 7 14.5 7.67 13 8.5 13zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="font-bold text-lg text-white" id="lrt-count">18</span>
+                                <span class="text-white/70 text-sm"> Stasiun LRT</span>
+                            </div>
+                        </div>
+                        <!-- TransJakarta with Bus Icon -->
+                        <div class="flex items-center gap-3 transport-stat-item">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center transport-icon">
+                                <!-- Bus Icon -->
+                                <svg class="w-6 h-6 text-teal-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="font-bold text-lg text-white" id="tj-count">252</span>
+                                <span class="text-white/70 text-sm"> Halte TJ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div>
+                    <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Ikuti
+                        Kami</h3>
+                    <div class="flex items-center gap-3">
+                        <a href="#"
+                            class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
+                            title="Instagram">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
+                            title="TikTok">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
+                            title="X (Twitter)">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                        </a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-md"
+                            title="YouTube">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="mt-8 pt-6 border-t border-white/20">
+                <p class="text-center text-sm text-white/70">
+                    © 2025 Kelompok 6. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Theme Toggle Script -->
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Create flash element for theme transition effect
+        const themeFlash = document.createElement('div');
+        themeFlash.className = 'theme-flash';
+        document.body.appendChild(themeFlash);
+
+        // Check for saved theme preference or system preference
+        function getThemePreference() {
+            if (localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        // Apply theme with smooth transition
+        function applyTheme(theme, animate = false) {
+            if (animate) {
+                // Add transition class for smooth animation
+                html.classList.add('theme-transition');
+
+                // Trigger flash effect
+                themeFlash.classList.add('active');
+
+                // Add pulse animation to button
+                themeToggle.classList.add('pulse');
+
+                // Remove animation classes after animation completes
+                setTimeout(() => {
+                    html.classList.remove('theme-transition');
+                    themeFlash.classList.remove('active');
+                    themeToggle.classList.remove('pulse');
+                }, 600);
+            }
+
+            if (theme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        // Initialize theme (no animation on page load)
+        applyTheme(getThemePreference(), false);
+
+        // Toggle theme on button click with animation
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme, true);
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Fetch and update stats
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/summary');
+                const data = await response.json();
+                if (data.mrt_count) document.getElementById('mrt-count').textContent = data.mrt_count;
+                if (data.lrt_count) document.getElementById('lrt-count').textContent = data.lrt_count;
+                if (data.tj_count) document.getElementById('tj-count').textContent = data.tj_count;
+            } catch (error) {
+                console.log('Could not fetch stats');
+            }
+        }
+
+        updateStats();
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,269 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\nafia\AppData\Local\Programs\Python\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\nafia\Downloads\mobilitygraph
+plugins: anyio-4.12.0
+collecting ... collected 22 items
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded PASSED     [  4%]
+tests/test_routing.py::TestDataLoading::test_mrt_stops_exist PASSED      [  9%]
+tests/test_routing.py::TestDataLoading::test_lrt_stops_exist PASSED      [ 13%]
+tests/test_routing.py::TestDataLoading::test_pois_loaded PASSED          [ 18%]
+tests/test_routing.py::TestDataLoading::test_regions_loaded PASSED       [ 22%]
+tests/test_routing.py::TestGraphBuilding::test_graph_has_nodes PASSED    [ 27%]
+tests/test_routing.py::TestGraphBuilding::test_graph_has_edges PASSED    [ 31%]
+tests/test_routing.py::TestGraphBuilding::test_edge_has_weight_attributes PASSED [ 36%]
+tests/test_routing.py::TestMRTOnlyRoute::test_mrt_route_between_stations PASSED [ 40%]
+tests/test_routing.py::TestMRTOnlyRoute::test_mrt_route_has_geometry PASSED [ 45%]
+tests/test_routing.py::TestTJOnlyRoute::test_tj_stops_have_edges PASSED  [ 50%]
+tests/test_routing.py::TestTJOnlyRoute::test_tj_route_if_available FAILED [ 54%]
+tests/test_routing.py::TestMultiModalRoute::test_all_mode_allows_mixed_transport PASSED [ 59%]
+tests/test_routing.py::TestMultiModalRoute::test_transfer_penalty_applied PASSED [ 63%]
+tests/test_routing.py::TestMultiModalRoute::test_multimodal_route_geojson PASSED [ 68%]
+tests/test_routing.py::TestRouteToPoI::test_route_to_monas PASSED        [ 72%]
+tests/test_routing.py::TestCostCalculation::test_mrt_fare_range FAILED   [ 77%]
+tests/test_routing.py::TestCostCalculation::test_per_leg_cost_breakdown PASSED [ 81%]
+tests/test_routing.py::TestWalkingRoutes::test_walking_constants PASSED  [ 86%]
+tests/test_routing.py::TestWalkingRoutes::test_walking_time_calculation PASSED [ 90%]
+tests/test_routing.py::TestWalkingRoutes::test_walking_cost_is_zero PASSED [ 95%]
+tests/test_routing.py::TestWalkingRoutes::test_find_nearest_stop PASSED  [100%]
+
+================================== FAILURES ===================================
+_________________ TestTJOnlyRoute.test_tj_route_if_available __________________
+
+self = <tests.test_routing.TestTJOnlyRoute object at 0x00000236F7B44A50>
+mobility_system = {'builder': <mobilitygraph.graph_builder.GraphBuilder object at 0x00000236F7A9B0E0>, 'loader': <mobilitygraph.loader.MobilityGraphLoader object at 0x00000236F7A9A7B0>, 'router': <mobilitygraph.router.Router object at 0x00000236FB5CE120>}
+
+    def test_tj_route_if_available(self, mobility_system):
+        """Find route using TransJakarta only (if stops are connected)"""
+        builder = mobility_system["builder"]
+        router = mobility_system["router"]
+    
+        # Get two TJ stops that are connected
+        tj_nodes = [
+            node for node, data in builder.graph.nodes(data=True)
+            if data.get("mode") == "TJ"
+        ]
+    
+        if len(tj_nodes) >= 2:
+            # Try to find a route between first two TJ stops
+            result = router.find_route(
+                start_id=tj_nodes[0],
+                end_id=tj_nodes[1],
+                mode="TJ"
+            )
+    
+            # Route may or may not exist depending on connectivity
+            if "error" not in result:
+                assert result["summary"]["total_distance_km"] >= 0
+                for leg in result["legs"]:
+>                   assert leg["mode"] == "TJ", "All legs should be TJ mode"
+E                   AssertionError: All legs should be TJ mode
+E                   assert 'LRT' == 'TJ'
+E                     
+E                     - TJ
+E                     + LRT
+
+tests\test_routing.py:197: AssertionError
+___________________ TestCostCalculation.test_mrt_fare_range ___________________
+
+self = <tests.test_routing.TestCostCalculation object at 0x00000236F7B451D0>
+mobility_system = {'builder': <mobilitygraph.graph_builder.GraphBuilder object at 0x00000236F7A9B0E0>, 'loader': <mobilitygraph.loader.MobilityGraphLoader object at 0x00000236F7A9A7B0>, 'router': <mobilitygraph.router.Router object at 0x00000236FB5CE120>}
+
+    def test_mrt_fare_range(self, mobility_system):
+        """Verify MRT fares are within expected range"""
+        router = mobility_system["router"]
+    
+        result = router.find_route(
+            start_id="Stop_MRT_01",
+            end_id="Stop_MRT_13",
+            mode="MRT"
+        )
+    
+        if "error" not in result:
+            total_cost = result["summary"]["total_cost_idr"]
+            # MRT Jakarta max fare is around 14,000 IDR
+>           assert 3000 <= total_cost <= 50000, f"Cost should be reasonable: {total_cost}"
+E           AssertionError: Cost should be reasonable: 50246
+E           assert 50246 <= 50000
+
+tests\test_routing.py:277: AssertionError
+============================== warnings summary ===============================
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:173: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    IRIREF.setParseAction(lambda x: rdflib.URIRef(x[0]))
+
+tests/test_routing.py: 206 warnings
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parserutils.py:129: DeprecationWarning: 'setName' deprecated - use 'set_name'
+    self.setName(name)
+
+tests/test_routing.py: 206 warnings
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parserutils.py:130: DeprecationWarning: 'addParseAction' deprecated - use 'add_parse_action'
+    self.addParseAction(self.postParse2)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:212: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    PNAME_NS = Optional(Param("prefix", PN_PREFIX)) + Suppress(":").leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:245: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    PNAME_LN = PNAME_NS + Param("localname", PN_LOCAL.leaveWhitespace())
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:252: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    BLANK_NODE_LABEL.setParseAction(lambda x: rdflib.BNode(x[0][2:]))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:273: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    INTEGER.setParseAction(lambda x: rdflib.Literal(x[0], datatype=rdflib.XSD.integer))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:281: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    DECIMAL.setParseAction(lambda x: rdflib.Literal(x[0], datatype=rdflib.XSD.decimal))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:286: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    DOUBLE.setParseAction(lambda x: rdflib.Literal(x[0], datatype=rdflib.XSD.double))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:290: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    INTEGER_POSITIVE = Suppress("+") + INTEGER.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:291: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    INTEGER_POSITIVE.setParseAction(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:296: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    DECIMAL_POSITIVE = Suppress("+") + DECIMAL.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:299: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    DOUBLE_POSITIVE = Suppress("+") + DOUBLE.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:302: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    INTEGER_NEGATIVE = Suppress("-") + INTEGER.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:303: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    INTEGER_NEGATIVE.setParseAction(lambda x: neg(x[0]))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:306: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    DECIMAL_NEGATIVE = Suppress("-") + DECIMAL.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:307: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    DECIMAL_NEGATIVE.setParseAction(lambda x: neg(x[0]))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:310: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    DOUBLE_NEGATIVE = Suppress("-") + DOUBLE.copy().leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:311: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    DOUBLE_NEGATIVE.setParseAction(lambda x: neg(x[0]))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:321: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    STRING_LITERAL_LONG1.setParseAction(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:329: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    STRING_LITERAL_LONG2.setParseAction(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:338: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    STRING_LITERAL1.setParseAction(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:347: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    STRING_LITERAL2.setParseAction(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:353: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    NIL.setParseAction(lambda x: rdflib.RDF.nil)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:360: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    ANON.setParseAction(lambda x: rdflib.BNode())
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:364: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    A.setParseAction(lambda x: rdflib.RDF.type)
+
+tests/test_routing.py: 126 warnings
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parserutils.py:239: DeprecationWarning: 'setName' deprecated - use 'set_name'
+    self.setName(name)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:380: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    Var.setParseAction(lambda x: rdflib.term.Variable(x[0]))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:397: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    Param("lang", LANGTAG.leaveWhitespace())
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:398: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    | Literal("^^").leaveWhitespace() + Param("datatype", iri).leaveWhitespace()
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:417: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    BooleanLiteral = Keyword("true").setParseAction(lambda: rdflib.Literal(True)) | Keyword(
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:419: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    ).setParseAction(lambda: rdflib.Literal(False))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:505: DeprecationWarning: 'leaveWhitespace' deprecated - use 'leave_whitespace'
+    Param("part", PathPrimary) + Optional(Param("mod", PathMod.leaveWhitespace())),
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:545: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    Collection.setParseAction(expandCollection)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:549: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    CollectionPath.setParseAction(expandCollection)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:576: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    BlankNodePropertyList.setParseAction(expandBNodeTriples)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:582: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    BlankNodePropertyListPath.setParseAction(expandBNodeTriples)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:592: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    TriplesSameSubject.setParseAction(expandTriples)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:632: DeprecationWarning: 'setParseAction' deprecated - use 'set_parse_action'
+    TriplesSameSubjectPath.setParseAction(expandTriples)
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:657: DeprecationWarning: 'delimitedList' deprecated - use 'DelimitedList'
+    ExpressionList = NIL | Group(Suppress("(") + delimitedList(Expression) + Suppress(")"))
+
+tests/test_routing.py::TestDataLoading::test_ttl_files_loaded
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:1018: DeprecationWarning: 'delimitedList' deprecated - use 'DelimitedList'
+    + delimitedList(ParamList("expr", Expression))
+
+tests/test_routing.py: 11 warnings
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\rdflib\plugins\sparql\parser.py:1553: DeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    return Query.parseString(q, parseAll=True)
+
+tests/test_routing.py: 11 warnings
+  C:\Users\nafia\AppData\Local\Programs\Python\Python314\Lib\site-packages\pyparsing\util.py:439: DeprecationWarning: 'parseAll' argument is deprecated, use 'parse_all'
+    return fn(self, *args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_routing.py::TestTJOnlyRoute::test_tj_route_if_available - A...
+FAILED tests/test_routing.py::TestCostCalculation::test_mrt_fare_range - Asse...
+================= 2 failed, 20 passed, 599 warnings in 37.43s =================

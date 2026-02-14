@@ -1,0 +1,108 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix tr: <http://example.com/tr#> .
+@prefix mg: <http://example.org/mobilitygraph#> .
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix schema1: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# === SHACL Shapes for MobilityGraph ===
+
+# Shape 1: StopPoint - Must have name, lat, long
+mg:StopPointShape a sh:NodeShape ;
+    sh:targetClass tr:StopPoint ;
+    sh:property [
+        sh:path schema1:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "StopPoint must have exactly one schema1:name (string)" ;
+    ] ;
+    sh:property [
+        sh:path geo1:lat ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "StopPoint must have exactly one geo1:lat" ;
+    ] ;
+    sh:property [
+        sh:path geo1:long ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "StopPoint must have exactly one geo1:long" ;
+    ] .
+
+# Shape 2: Route - Must have name and stopAt
+mg:RouteShape a sh:NodeShape ;
+    sh:targetClass tr:Route ;
+    sh:property [
+        sh:path schema1:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Route must have exactly one schema1:name (string)" ;
+    ] ;
+    sh:property [
+        sh:path tr:stopAt ;
+        sh:minCount 2 ;
+        sh:class tr:StopPoint ;
+        sh:message "Route must have at least 2 stopAt references to StopPoint" ;
+    ] .
+
+# Shape 3: TransportOption - Must have hasRoute and price
+mg:TransportOptionShape a sh:NodeShape ;
+    sh:targetClass tr:TransportOption ;
+    sh:property [
+        sh:path schema1:name ;
+        sh:minCount 1 ;
+        sh:message "TransportOption must have schema1:name" ;
+    ] ;
+    sh:property [
+        sh:path tr:hasRoute ;
+        sh:minCount 1 ;
+        sh:class tr:Route ;
+        sh:message "TransportOption must have tr:hasRoute referencing a Route" ;
+    ] ;
+    sh:property [
+        sh:path tr:price ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:message "TransportOption must have tr:price (integer)" ;
+    ] .
+
+# Shape 4: PlaceOfInterest - Must have name, lat, long
+mg:PlaceOfInterestShape a sh:NodeShape ;
+    sh:targetClass mg:PlaceOfInterest ;
+    sh:property [
+        sh:path schema1:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "PlaceOfInterest must have exactly one schema1:name" ;
+    ] ;
+    sh:property [
+        sh:path geo1:lat ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "PlaceOfInterest must have exactly one geo1:lat" ;
+    ] ;
+    sh:property [
+        sh:path geo1:long ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "PlaceOfInterest must have exactly one geo1:long" ;
+    ] ;
+    sh:property [
+        sh:path mg:inRegion ;
+        sh:maxCount 1 ;
+        sh:class mg:Region ;
+        sh:message "PlaceOfInterest inRegion must reference a Region" ;
+    ] .
+
+# Shape 5: Region - Must have name
+mg:RegionShape a sh:NodeShape ;
+    sh:targetClass mg:Region ;
+    sh:property [
+        sh:path schema1:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Region must have exactly one schema1:name (string)" ;
+    ] .

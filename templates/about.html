@@ -1,0 +1,598 @@
+{% extends "base.html" %}
+
+{% block title %}Tentang Kami{% endblock %}
+{% block description %}Pelajari lebih lanjut tentang MobilityGraph dan tim di baliknya{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* Team card styles */
+    .team-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .team-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .dark .team-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .team-photo {
+        transition: transform 0.4s ease;
+    }
+
+    .team-card:hover .team-photo {
+        transform: scale(1.05);
+    }
+
+    /* Tech carousel */
+    .tech-carousel {
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+
+    .tech-track {
+        display: flex;
+        gap: 2rem;
+        animation: scroll 30s linear infinite;
+    }
+
+    @keyframes scroll {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    .tech-track:hover {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tech-track {
+            animation: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+
+    /* Tech card hover */
+    .tech-card {
+        transition: all 0.3s ease;
+    }
+
+    .tech-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Section fade in animation */
+    .section-fade {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .section-fade:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .section-fade:nth-child(2) {
+        animation-delay: 0.3s;
+    }
+
+    .section-fade:nth-child(3) {
+        animation-delay: 0.5s;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <!-- Hero Section -->
+    <div class="text-center mb-16 section-fade">
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+            <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Tentang MobilityGraph
+            </span>
+        </h1>
+        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Membangun masa depan transportasi Jakarta dengan teknologi Semantic Web dan Knowledge Graph
+        </p>
+    </div>
+
+    <!-- What is MobilityGraph Section -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden mb-12 section-fade">
+        <!-- Header with gradient -->
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 p-6 md:p-8">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                        </path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-white">
+                    Apa itu Mobility Graph?
+                </h2>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 md:p-10">
+            <div class="prose prose-slate dark:prose-invert max-w-none space-y-5">
+                <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+                    <strong class="text-indigo-600 dark:text-indigo-400">MobilityGraph</strong> adalah platform
+                    perencanaan rute berbasis <strong>Knowledge Graph</strong> yang menghubungkan seluruh jaringan
+                    transportasi publik Jakarta dalam satu ekosistem terintegrasi. Dengan pendekatan <strong>Semantic
+                        Web</strong>, kami memodelkan data transportasi sebagai graf yang cerdas dan dapat dipahami oleh
+                    mesin maupun manusia. Platform ini dikembangkan sebagai solusi inovatif untuk menjawab tantangan
+                    mobilitas perkotaan di Jakarta yang semakin kompleks.
+                </p>
+
+                <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+                    Dalam arsitektur sistem kami, setiap <strong
+                        class="text-purple-600 dark:text-purple-400">node</strong> merepresentasikan titik pemberhentian
+                    transportasi publik, termasuk stasiun MRT Jakarta, stasiun LRT Jabodebek, serta halte TransJakarta
+                    yang tersebar di seluruh wilayah DKI Jakarta dan sekitarnya. Sementara itu, <strong
+                        class="text-blue-600 dark:text-blue-400">edge</strong> menggambarkan koneksi atau rute antar
+                    titik tersebut, yang dilengkapi dengan informasi detail seperti jarak tempuh dalam kilometer,
+                    estimasi waktu perjalanan, serta tarif yang berlaku untuk setiap moda transportasi.
+                </p>
+
+                <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+                    Dengan memanfaatkan teknologi <strong>RDF (Resource Description Framework)</strong> dan
+                    <strong>SPARQL</strong> untuk query data, MobilityGraph mampu memberikan rekomendasi rute yang
+                    optimal berdasarkan berbagai kriteria. Sistem ini juga menggunakan algoritma
+                    <strong>Dijkstra</strong> yang diimplementasikan melalui library <strong>NetworkX</strong> untuk
+                    menemukan jalur terpendek antar lokasi. Seluruh data transportasi disimpan dalam format
+                    <strong>Turtle (.ttl)</strong> yang sesuai dengan standar Semantic Web internasional.
+                </p>
+
+                <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg font-medium">
+                    Platform ini dirancang untuk membantu warga Jakarta dan wisatawan dalam berbagai aspek mobilitas:
+                </p>
+
+                <!-- Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 not-prose">
+                    <div
+                        class="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-100 dark:border-indigo-800/30">
+                        <span
+                            class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Perencanaan Rute Multi-Moda
+                            </h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Kombinasikan MRT, LRT, dan
+                                TransJakarta dalam satu perjalanan yang efisien</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800/30">
+                        <span
+                            class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Integrasi Transportasi Publik
+                            </h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Data terintegrasi dari MRT Jakarta,
+                                LRT Jabodebek, dan jaringan TransJakarta</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30">
+                        <span
+                            class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Estimasi Waktu dan Biaya</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Perhitungan akurat untuk durasi
+                                perjalanan dan total biaya transportasi</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-100 dark:border-amber-800/30">
+                        <span
+                            class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-slate-900 dark:text-white mb-1">Eksplorasi Destinasi Wisata
+                            </h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Temukan dan rencanakan kunjungan ke
+                                berbagai destinasi menarik di Jakarta</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Technology Stack Section -->
+    <div class="mb-12 section-fade">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                ⚡ Teknologi yang Menggerakkan Kami
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+                Dibangun dengan teknologi modern dan standar Semantic Web
+            </p>
+        </div>
+
+        <!-- 8-column Grid Layout -->
+        <div class="grid grid-cols-4 md:grid-cols-8 gap-4">
+            <!-- Row 1 -->
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Python</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">FastAPI</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">RDF</span>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">RDFLib</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">SPARQL</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">NetworkX</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Folium</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-400 to-sky-600 flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">TW</span>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Tailwind</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">JS</span>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">JavaScript</span>
+            </div>
+
+            <!-- Row 2 -->
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+                        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Leaflet</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Jinja2</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Geopy</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">HTML5</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">CSS</span>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">CSS3</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Pydantic</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Uvicorn</span>
+            </div>
+            <div
+                class="tech-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 p-4 aspect-square">
+                <div
+                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-fuchsia-400 to-fuchsia-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3v18M3 12h18M5.636 5.636l12.728 12.728M18.364 5.636L5.636 18.364" />
+                    </svg>
+                </div>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 text-center">Chart.js</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Section -->
+    <div class="section-fade">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-3">
+                👥 Tim di Balik MobilityGraph
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+                Kelompok 6 - Web Semantik 2025
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Team Member 1 - Muhammad Nafi -->
+            <div
+                class="team-card group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg hover:shadow-2xl">
+                <div class="h-56 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
+                    <!-- Decorative circles -->
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2">
+                    </div>
+
+                    <!-- Photo container -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div
+                            class="team-photo relative w-40 h-40 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                            <img src="/static/images/Nafi.png" alt="Muhammad Nafi"
+                                class="w-full h-full object-cover object-top">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 text-center relative">
+                    <!-- Gradient line -->
+                    <div
+                        class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full">
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-1 mt-2">Muhammad Nafi</h3>
+                    <p class="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-2">Researcher & Full-Stack
+                        Developer</p>
+                    <div class="flex justify-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">Python</span>
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">FastAPI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Member 2 - Andi Asyiraf -->
+            <div
+                class="team-card group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg hover:shadow-2xl">
+                <div class="h-56 bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500 relative overflow-hidden">
+                    <!-- Decorative circles -->
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2">
+                    </div>
+
+                    <!-- Photo container -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div
+                            class="team-photo relative w-40 h-40 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                            <img src="/static/images/Andi.png" alt="Andi Asyiraf"
+                                class="w-full h-full object-cover object-top">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 text-center relative">
+                    <!-- Gradient line -->
+                    <div
+                        class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-full">
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-1 mt-2">Andi Asyiraf</h3>
+                    <p class="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">Full-Stack Developer</p>
+                    <div class="flex justify-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">RDF</span>
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400">SPARQL</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Member 3 - Moqtada Aziz -->
+            <div
+                class="team-card group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg hover:shadow-2xl">
+                <div class="h-56 bg-gradient-to-br from-emerald-500 via-green-500 to-lime-500 relative overflow-hidden">
+                    <!-- Decorative circles -->
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2">
+                    </div>
+
+                    <!-- Photo container -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div
+                            class="team-photo relative w-40 h-40 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                            <img src="/static/images/Aziz.png" alt="Moqtada Aziz"
+                                class="w-full h-full object-cover object-top">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 text-center relative">
+                    <!-- Gradient line -->
+                    <div
+                        class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-lime-500 rounded-full">
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-1 mt-2">Moqtada Aziz</h3>
+                    <p class="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-2">UI/UX Designer &
+                        Front-End</p>
+                    <div class="flex justify-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">Tailwind</span>
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">Figma</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Member 4 - Trecya Dewi -->
+            <div
+                class="team-card group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg hover:shadow-2xl">
+                <div class="h-56 bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 relative overflow-hidden">
+                    <!-- Decorative circles -->
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2">
+                    </div>
+
+                    <!-- Photo container -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div
+                            class="team-photo relative w-40 h-40 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                            <img src="/static/images/Trecya.png" alt="Trecya Dewi"
+                                class="w-full h-full object-cover object-center">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 text-center relative">
+                    <!-- Gradient line -->
+                    <div
+                        class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 rounded-full">
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-1 mt-2">Trecya Dewi</h3>
+                    <p class="text-sm text-rose-600 dark:text-rose-400 font-medium mb-2">Researcher & UI/UX Designer</p>
+                    <div class="flex justify-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">Research</span>
+                        <span
+                            class="px-2 py-0.5 text-xs font-medium rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400">Design</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

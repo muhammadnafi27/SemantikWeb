@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Destinasi Favorit{% endblock %}
+{% block description %}Jelajahi destinasi wisata populer di Jakarta{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Destinasi Favorit Jakarta</h1>
+        <p class="text-slate-600 dark:text-slate-400">Temukan tempat wisata terbaik di Jakarta dan rencanakan
+            perjalananmu</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Cari destinasi..."
+                        class="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Region Filter -->
+            <div class="w-full md:w-64">
+                <select id="region-filter"
+                    class="w-full px-4 py-3 rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                    <option value="">Semua Wilayah</option>
+                    <option value="Jakarta Pusat">Jakarta Pusat</option>
+                    <option value="Jakarta Selatan">Jakarta Selatan</option>
+                    <option value="Jakarta Timur">Jakarta Timur</option>
+                    <option value="Jakarta Barat">Jakarta Barat</option>
+                    <option value="Jakarta Utara">Jakarta Utara</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Destinations Grid -->
+    <div id="destinations-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Cards will be loaded dynamically -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-16">
+        <svg class="w-24 h-24 mx-auto text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">Tidak ada destinasi ditemukan</h3>
+        <p class="text-slate-600 dark:text-slate-400">Coba ubah filter atau kata kunci pencarian</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Get destinations data from API
+    let allDestinations = [];
+
+    const regionBadgeClasses = {
+        'Jakarta Pusat': 'badge-jakarta-pusat',
+        'Jakarta Selatan': 'badge-jakarta-selatan',
+        'Jakarta Timur': 'badge-jakarta-timur',
+        'Jakarta Barat': 'badge-jakarta-barat',
+        'Jakarta Utara': 'badge-jakarta-utara'
+    };
+
+    const categoryIcons = {
+        'Recreation': '🎢',
+        'Historical': '🏛️',
+        'Cultural': '🎭',
+        'Shopping': '🛍️',
+        'Sports': '⚽'
+    };
+
+    function createDestinationCard(dest) {
+        const badgeClass = regionBadgeClasses[dest.region] || 'bg-slate-500';
+        const icon = categoryIcons[dest.category] || '📍';
+
+        return `
+            <div class="card-hover bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden" data-name="${dest.name.toLowerCase()}" data-region="${dest.region}">
+                <div class="relative h-48 bg-slate-200 dark:bg-slate-700">
+                    <img src="${dest.image_url}" alt="${dest.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=800'">
+                    <div class="absolute top-3 left-3">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold text-white ${badgeClass}">
+                            ${dest.region}
+                        </span>
+                    </div>
+                    <div class="absolute top-3 right-3 w-10 h-10 bg-white/90 dark:bg-slate-800/90 rounded-full flex items-center justify-center text-xl">
+                        ${icon}
+                    </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">${dest.name}</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">${dest.description || dest.long_description?.substring(0, 100) + '...' || 'Destinasi wisata populer di Jakarta'}</p>
+                    <a href="/favorites/${dest.slug}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors">
+                        Lihat Detail
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderDestinations(destinations) {
+        const grid = document.getElementById('destinations-grid');
+        const emptyState = document.getElementById('empty-state');
+
+        if (destinations.length === 0) {
+            grid.innerHTML = '';
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            grid.innerHTML = destinations.map(createDestinationCard).join('');
+        }
+    }
+
+    function filterDestinations() {
+        const searchQuery = document.getElementById('search-input').value.toLowerCase();
+        const regionFilter = document.getElementById('region-filter').value;
+
+        const filtered = allDestinations.filter(dest => {
+            const matchesSearch = dest.name.toLowerCase().includes(searchQuery);
+            const matchesRegion = !regionFilter || dest.region === regionFilter;
+            return matchesSearch && matchesRegion;
+        });
+
+        renderDestinations(filtered);
+    }
+
+    async function loadDestinations() {
+        try {
+            const response = await fetch('/api/destinations');
+            allDestinations = await response.json();
+            renderDestinations(allDestinations);
+        } catch (error) {
+            console.error('Error loading destinations:', error);
+        }
+    }
+
+    // Event listeners
+    document.getElementById('search-input').addEventListener('input', filterDestinations);
+    document.getElementById('region-filter').addEventListener('change', filterDestinations);
+
+    // Load on page ready
+    loadDestinations();
+</script>
+{% endblock %}

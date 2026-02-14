@@ -1,0 +1,10 @@
+@prefix mg: <http://example.org/mobilitygraph#> .
+@prefix tr: <http://example.com/tr#> .
+@prefix schema1: <http://schema.org/> .
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Custom routes and data added by admin
+# This file is managed by the MobilityGraph Admin interface
+# Do not edit manually unless you know what you're doing
+

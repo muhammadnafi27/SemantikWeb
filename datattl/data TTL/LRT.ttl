@@ -1,0 +1,154 @@
+@prefix geo1: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix schema1: <http://schema.org/> .
+@prefix tr: <http://example.com/tr#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Operator ---
+tr:Op_LRTJabodebek a tr:Operator ;
+    schema1:name "LRT Jabodebek (KAI)" .
+
+# --- Stop Points (Stasiun Shared Section: Dukuh Atas - Cawang) ---
+
+tr:Stop_LRT_01 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Dukuh Atas" ;
+    geo1:lat "-6.209150" ;
+    geo1:long "106.822760" .
+
+tr:Stop_LRT_02 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Setiabudi" ;
+    geo1:lat "-6.216550" ;
+    geo1:long "106.829650" .
+
+tr:Stop_LRT_03 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Rasuna Said" ;
+    geo1:lat "-6.223200" ;
+    geo1:long "106.832250" .
+
+tr:Stop_LRT_04 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Kuningan" ;
+    geo1:lat "-6.233020" ;
+    geo1:long "106.832950" .
+
+tr:Stop_LRT_05 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Pancoran" ;
+    geo1:lat "-6.241620" ;
+    geo1:long "106.841400" .
+
+tr:Stop_LRT_06 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Cikoko" ;
+    geo1:lat "-6.242850" ;
+    geo1:long "106.857350" .
+
+tr:Stop_LRT_07 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Ciliwung" ;
+    geo1:lat "-6.243850" ;
+    geo1:long "106.863650" .
+
+tr:Stop_LRT_08 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Cawang" ;
+    geo1:lat "-6.248250" ;
+    geo1:long "106.874150" .
+
+# --- Stop Points (Cibubur Line Branch) ---
+
+tr:Stop_LRT_CB_01 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Taman Mini" ;
+    geo1:lat "-6.290350" ;
+    geo1:long "106.882950" .
+
+tr:Stop_LRT_CB_02 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Kampung Rambutan" ;
+    geo1:lat "-6.309250" ;
+    geo1:long "106.882450" .
+
+tr:Stop_LRT_CB_03 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Ciracas" ;
+    geo1:lat "-6.330750" ;
+    geo1:long "106.884550" .
+
+tr:Stop_LRT_CB_04 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Harjamukti" ;
+    geo1:lat "-6.372550" ;
+    geo1:long "106.895350" .
+
+# --- Stop Points (Bekasi Line Branch) ---
+
+tr:Stop_LRT_BK_01 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Halim" ;
+    geo1:lat "-6.245450" ;
+    geo1:long "106.885550" .
+
+tr:Stop_LRT_BK_02 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Jatibening Baru" ;
+    geo1:lat "-6.257250" ;
+    geo1:long "106.941750" .
+
+tr:Stop_LRT_BK_03 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Cikunir I" ;
+    geo1:lat "-6.253450" ;
+    geo1:long "106.960650" .
+
+tr:Stop_LRT_BK_04 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Cikunir II" ;
+    geo1:lat "-6.248050" ;
+    geo1:long "106.970650" .
+
+tr:Stop_LRT_BK_05 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Bekasi Barat" ;
+    geo1:lat "-6.248450" ;
+    geo1:long "106.991850" .
+
+tr:Stop_LRT_BK_06 a tr:StopPoint ;
+    schema1:name "Stasiun LRT Jatimulya" ;
+    geo1:lat "-6.261750" ;
+    geo1:long "107.018450" .
+
+# --- Transport Options (Layanan) ---
+
+tr:Transport_LRT_Cibubur a tr:TransportOption ;
+    tr:hasRoute tr:RoutePath_LRT_CB ;
+    tr:operatedBy tr:Op_LRTJabodebek ;
+    tr:price 20000 ; # Harga max (variabel 3rb - 20rb)
+    schema1:name "LRT Jabodebek Cibubur Line" .
+
+tr:Transport_LRT_Bekasi a tr:TransportOption ;
+    tr:hasRoute tr:RoutePath_LRT_BK ;
+    tr:operatedBy tr:Op_LRTJabodebek ;
+    tr:price 20000 ; # Harga max (variabel 3rb - 20rb)
+    schema1:name "LRT Jabodebek Bekasi Line" .
+
+# --- Routes (Jalur) ---
+
+# Jalur Cibubur (Dukuh Atas - Harjamukti)
+tr:RoutePath_LRT_CB a tr:Route ;
+    tr:stopAt tr:Stop_LRT_01,
+        tr:Stop_LRT_02,
+        tr:Stop_LRT_03,
+        tr:Stop_LRT_04,
+        tr:Stop_LRT_05,
+        tr:Stop_LRT_06,
+        tr:Stop_LRT_07,
+        tr:Stop_LRT_08,
+        tr:Stop_LRT_CB_01,
+        tr:Stop_LRT_CB_02,
+        tr:Stop_LRT_CB_03,
+        tr:Stop_LRT_CB_04 ;
+    schema1:name "Rute Fisik LRT Cibubur Line (Dukuh Atas - Harjamukti)" .
+
+# Jalur Bekasi (Dukuh Atas - Jatimulya)
+tr:RoutePath_LRT_BK a tr:Route ;
+    tr:stopAt tr:Stop_LRT_01,
+        tr:Stop_LRT_02,
+        tr:Stop_LRT_03,
+        tr:Stop_LRT_04,
+        tr:Stop_LRT_05,
+        tr:Stop_LRT_06,
+        tr:Stop_LRT_07,
+        tr:Stop_LRT_08,
+        tr:Stop_LRT_BK_01,
+        tr:Stop_LRT_BK_02,
+        tr:Stop_LRT_BK_03,
+        tr:Stop_LRT_BK_04,
+        tr:Stop_LRT_BK_05,
+        tr:Stop_LRT_BK_06 ;
+    schema1:name "Rute Fisik LRT Bekasi Line (Dukuh Atas - Jatimulya)" .

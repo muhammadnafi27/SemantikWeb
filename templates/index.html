@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MobilityGraph - Jakarta Route Planner</title>
+    <meta name="description" content="Perencanaan rute wisata Jakarta dengan MRT, LRT, dan TransJakarta">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        mrt: '#e63946',
+                        lrt: '#f4a261',
+                        tj: '#2a9d8f',
+                        walk: '#8b5cf6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Map container */
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Animated gradient */
+        .gradient-animated {
+            background: linear-gradient(-45deg, #0ea5e9, #8b5cf6, #ec4899, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Mode badge styles */
+        .mode-mrt {
+            background: linear-gradient(135deg, #e63946, #c81e30);
+        }
+
+        .mode-lrt {
+            background: linear-gradient(135deg, #f4a261, #e87f17);
+        }
+
+        .mode-tj {
+            background: linear-gradient(135deg, #2a9d8f, #1e7268);
+        }
+
+        .mode-walk {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* Card hover effect */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Checkbox custom style */
+        .poi-checkbox:checked+.poi-label {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            border-color: #0ea5e9;
+        }
+
+        /* Region badge colors */
+        .badge-jakarta-pusat {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .badge-jakarta-selatan {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .badge-jakarta-timur {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .badge-jakarta-barat {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .badge-jakarta-utara {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* Route card active */
+        .route-card.active {
+            border-color: #0ea5e9;
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        /* Theme Toggle Animations */
+        #theme-toggle {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #theme-toggle:hover::before {
+            opacity: 1;
+        }
+
+        #theme-toggle:active {
+            transform: scale(0.9);
+        }
+
+        #theme-toggle svg {
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        #theme-toggle:hover svg {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        .dark #theme-toggle svg.text-amber-300 {
+            animation: sunRise 0.6s ease-out;
+        }
+
+        html:not(.dark) #theme-toggle svg:not(.text-amber-300) {
+            animation: moonRise 0.6s ease-out;
+        }
+
+        @keyframes sunRise {
+            0% {
+                transform: rotate(-90deg) scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: rotate(20deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes moonRise {
+            0% {
+                transform: rotate(90deg) scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: rotate(-20deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        html.theme-transition,
+        html.theme-transition *,
+        html.theme-transition *::before,
+        html.theme-transition *::after {
+            transition: background-color 0.5s ease,
+                background 0.5s ease,
+                color 0.4s ease,
+                border-color 0.4s ease,
+                box-shadow 0.4s ease !important;
+        }
+
+        .dark #theme-toggle {
+            box-shadow: 0 0 15px 2px rgba(251, 191, 36, 0.3);
+        }
+
+        html:not(.dark) #theme-toggle {
+            box-shadow: 0 0 15px 2px rgba(99, 102, 241, 0.3);
+        }
+
+        @keyframes themePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        #theme-toggle.pulse {
+            animation: themePulse 0.6s ease-out;
+        }
+
+        .theme-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+        }
+
+        .theme-flash.active {
+            animation: flashFade 0.5s ease-out forwards;
+        }
+
+        .dark .theme-flash {
+            background: radial-gradient(circle at center, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+        }
+
+        html:not(.dark) .theme-flash {
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        }
+
+        @keyframes flashFade {
+            0% {
+                opacity: 0.8;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        /* Navigation text links with border-bottom hover */
+        .nav-text-link {
+            position: relative;
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #a855f7, #6366f1);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-text-link:hover {
+            color: #ffffff;
+        }
+
+        .nav-text-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .nav-text-link.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .nav-text-link.active::after {
+            transform: scaleX(1);
+        }
+
+        .dark .nav-text-link {
+            color: rgba(203, 213, 225, 0.9);
+        }
+
+        .dark .nav-text-link:hover,
+        .dark .nav-text-link.active {
+            color: #38bdf8;
+        }
+
+        .dark .nav-text-link::after {
+            background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+        }
+    </style>
+</head>
+
+<body
+    class="h-full bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <!-- Navbar -->
+    <nav
+        class="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 border-b border-indigo-500/30 dark:border-slate-700 fixed top-0 left-0 right-0 z-50 shadow-lg">
+        <div class="px-4 h-14 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-md">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-lg font-bold text-white">MobilityGraph</span>
+                    <p class="text-xs text-white/70">Jakarta Route Planner</p>
+                </div>
+            </a>
+
+            <!-- Nav Links - Text Style with Border Hover -->
+            <div class="flex items-center gap-6">
+                <a href="/" class="nav-text-link active">
+                    Rencana Rute
+                </a>
+                <a href="/favorites" class="nav-text-link">
+                    Destinasi
+                </a>
+                <a href="/about" class="nav-text-link">
+                    Tentang Kami
+                </a>
+            </div>
+
+            <!-- Right Side: User Icon & Theme Toggle -->
+            <div class="flex items-center gap-2">
+                <!-- User/Admin Icon -->
+                <a href="/admin/login"
+                    class="p-2 rounded-lg bg-white/20 dark:bg-slate-700 hover:bg-white/30 dark:hover:bg-sky-900/50 text-white dark:text-slate-300 hover:text-white dark:hover:text-sky-400 transition-colors"
+                    title="Admin">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </a>
+
+                <!-- Dark/Light Toggle -->
+                <button id="theme-toggle"
+                    class="p-2 rounded-lg bg-white/20 dark:bg-slate-700 hover:bg-white/30 dark:hover:bg-slate-600 text-white transition-colors">
+                    <svg class="w-5 h-5 text-amber-300 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="flex h-full pt-14">
+        <!-- Sidebar -->
+        <aside
+            class="w-96 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden">
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- 1. Start Point (Titik Awal) -->
+                <section>
+                    <label
+                        class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Titik Awal
+                        </span>
+                    </label>
+                    <select id="start-stop"
+                        class="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Pilih stasiun/halte awal...</option>
+                    </select>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Pilih halte/stasiun awal perjalanan</p>
+                </section>
+
+                <!-- 2. Region (Wilayah) -->
+                <section>
+                    <label
+                        class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                                </path>
+                            </svg>
+                            Wilayah
+                        </span>
+                    </label>
+                    <select id="region-filter"
+                        class="w-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Semua Wilayah</option>
+                        <option value="Jakarta Pusat">Jakarta Pusat</option>
+                        <option value="Jakarta Selatan">Jakarta Selatan</option>
+                        <option value="Jakarta Timur">Jakarta Timur</option>
+                        <option value="Jakarta Barat">Jakarta Barat</option>
+                        <option value="Jakarta Utara">Jakarta Utara</option>
+                    </select>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Filter destinasi berdasarkan wilayah</p>
+                </section>
+
+                <!-- 3. Transport Mode (Moda Transportasi) - Enhanced with icons -->
+                <section>
+                    <label
+                        class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            Moda Transportasi
+                        </span>
+                    </label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <!-- MRT Button -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="mode" value="MRT" class="peer sr-only">
+                            <div
+                                class="px-2 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-center transition-all duration-200 peer-checked:border-mrt peer-checked:bg-mrt/10 peer-checked:shadow-lg peer-checked:shadow-mrt/20 hover:border-mrt/50 hover:bg-mrt/5">
+                                <svg class="w-5 h-5 mx-auto mb-1 text-mrt" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zm-1.5 14h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V6h3v2zm6.5 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V6h3v2z" />
+                                </svg>
+                                <span class="text-xs font-bold text-mrt">MRT</span>
+                            </div>
+                        </label>
+                        <!-- LRT Button -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="mode" value="LRT" class="peer sr-only">
+                            <div
+                                class="px-2 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-center transition-all duration-200 peer-checked:border-lrt peer-checked:bg-lrt/10 peer-checked:shadow-lg peer-checked:shadow-lrt/20 hover:border-lrt/50 hover:bg-lrt/5">
+                                <svg class="w-5 h-5 mx-auto mb-1 text-lrt" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zm-1.5 14h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V6h3v2zm6.5 8h-3v-2h3v2zm0-4h-3v-2h3v2zm0-4h-3V6h3v2z" />
+                                </svg>
+                                <span class="text-xs font-bold text-lrt">LRT</span>
+                            </div>
+                        </label>
+                        <!-- TJ Button -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="mode" value="TJ" class="peer sr-only">
+                            <div
+                                class="px-2 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-center transition-all duration-200 peer-checked:border-tj peer-checked:bg-tj/10 peer-checked:shadow-lg peer-checked:shadow-tj/20 hover:border-tj/50 hover:bg-tj/5">
+                                <svg class="w-5 h-5 mx-auto mb-1 text-tj" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z" />
+                                </svg>
+                                <span class="text-xs font-bold text-tj">TJ</span>
+                            </div>
+                        </label>
+                        <!-- ALL Button -->
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="mode" value="ALL" class="peer sr-only" checked>
+                            <div
+                                class="px-2 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-center transition-all duration-200 peer-checked:border-primary-500 peer-checked:bg-primary-500/10 peer-checked:shadow-lg peer-checked:shadow-primary-500/20 hover:border-primary-500/50 hover:bg-primary-500/5">
+                                <svg class="w-5 h-5 mx-auto mb-1 text-primary-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16m-7 6h7" />
+                                </svg>
+                                <span class="text-xs font-bold text-primary-500">Semua</span>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                        <span class="text-mrt">MRT</span>/<span class="text-lrt">LRT</span>/<span
+                            class="text-tj">TJ</span>: hanya moda tersebut + jalan kaki. <span
+                            class="text-primary-500">Semua</span>: kombinasi multi-moda.
+                    </p>
+                </section>
+
+                <!-- 4. Destination Selection (POI) - Enhanced with chips -->
+                <section>
+                    <div class="flex items-center justify-between mb-2">
+                        <label
+                            class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
+                                    </path>
+                                </svg>
+                                Destinasi Wisata
+                            </span>
+                        </label>
+                        <span id="poi-count"
+                            class="text-xs font-medium text-primary-500 bg-primary-100 dark:bg-primary-900/30 px-2 py-0.5 rounded-full">0
+                            dipilih</span>
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mb-2">Pilih satu atau lebih tujuan wisata
+                        (sistem menampilkan rute per destinasi)</p>
+
+                    <!-- Selected Chips Area -->
+                    <div id="selected-chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
+                        <!-- Chips will be injected here -->
+                    </div>
+
+                    <!-- Clear Selection Button -->
+                    <button id="clear-selection-btn"
+                        class="hidden w-full mb-2 py-1.5 px-3 text-xs font-medium text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors flex items-center justify-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                            </path>
+                        </svg>
+                        Bersihkan Pilihan
+                    </button>
+
+                    <!-- POI List -->
+                    <div id="poi-list" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                        <!-- POI checkboxes will be loaded here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Search Button -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+                <button id="search-btn"
+                    class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold shadow-lg shadow-primary-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span id="search-btn-text">Cari Rute</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Map Container -->
+            <div class="flex-1 relative">
+                <div id="map" class="absolute inset-0"></div>
+
+                <!-- Legend -->
+                <div class="absolute bottom-4 left-4 bg-white dark:bg-slate-800 rounded-lg shadow-lg p-3 z-[1000]">
+                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">Legend</p>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-1 bg-primary-500 rounded"></div>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Transport</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-0.5 border-t-2 border-dashed border-walk rounded"></div>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Jalan Kaki</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Overlay -->
+                <div id="loading-overlay"
+                    class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center hidden z-50">
+                    <div class="text-center">
+                        <div class="relative w-16 h-16 mx-auto mb-4">
+                            <div class="absolute inset-0 rounded-full border-4 border-primary-500/30"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-t-primary-500 animate-spin"></div>
+                        </div>
+                        <p class="text-slate-300 font-medium">Mencari rute terbaik...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Result Panel -->
+            <div id="route-panel"
+                class="hidden bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 max-h-80 overflow-hidden">
+                <div class="p-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <h3 class="font-semibold text-slate-900 dark:text-white">Hasil Rute</h3>
+                    <button id="close-panel" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-4 overflow-y-auto max-h-56">
+                    <!-- Summary Cards -->
+                    <div id="route-summary" class="grid grid-cols-3 gap-3 mb-4">
+                        <!-- Summary cards will be injected here -->
+                    </div>
+
+                    <!-- Route Legs -->
+                    <div id="route-legs" class="space-y-2">
+                        <!-- Route legs will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- No Route Modal - Enhanced with animations -->
+    <div id="no-route-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] hidden opacity-0 transition-opacity duration-300"
+        style="--tw-backdrop-blur: blur(4px);">
+        <div id="no-route-modal-content"
+            class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+            <div class="p-6 text-center">
+                <div
+                    class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center animate-pulse">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 id="modal-title" class="text-xl font-bold text-slate-900 dark:text-white mb-2">Tidak Ada Rute
+                    Tersedia</h3>
+                <p id="modal-message" class="text-slate-600 dark:text-slate-400 mb-4">
+                    Maaf, tidak ada rute yang mengarah ke tempat tersebut dengan moda transportasi yang dipilih.
+                </p>
+                <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-6 text-left">
+                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">💡 Saran:</p>
+                    <ul class="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                        <li>• Coba pilih moda "Semua" untuk rute multi-moda</li>
+                        <li>• Pilih destinasi yang lebih dekat dengan stasiun/halte</li>
+                        <li>• Coba titik awal yang berbeda</li>
+                    </ul>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="switchToAllMode()"
+                        class="flex-1 py-2.5 px-4 rounded-xl bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 dark:hover:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-medium transition-all">
+                        Coba Semua Moda
+                    </button>
+                    <button onclick="closeNoRouteModal()"
+                        class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold shadow-lg transition-all">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (only visible when scrolled down on mobile) -->
+    <footer
+        class="hidden lg:flex fixed bottom-0 right-0 p-2 bg-gradient-to-r from-indigo-600/95 via-purple-600/95 to-blue-600/95 dark:bg-slate-800/90 backdrop-blur-sm rounded-tl-lg text-xs text-white/90 dark:text-slate-400 z-40 items-center gap-3 shadow-lg">
+        <span>© 2025 Kelompok 6</span>
+        <span class="text-slate-300 dark:text-slate-600">|</span>
+        <div class="flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-mrt" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4z" />
+            </svg>
+            <span id="footer-mrt">13</span> MRT
+        </div>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <div class="flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-lrt" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M12 2C8 2 4 2.5 4 6v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4z" />
+            </svg>
+            <span id="footer-lrt">18</span> LRT
+        </div>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <div class="flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-tj" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10z" />
+            </svg>
+            <span id="footer-tj">252</span> Halte TJ
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Create flash element for theme transition effect
+        const themeFlash = document.createElement('div');
+        themeFlash.className = 'theme-flash';
+        document.body.appendChild(themeFlash);
+
+        function getThemePreference() {
+            if (localStorage.getItem('theme')) return localStorage.getItem('theme');
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function applyTheme(theme, animate = false) {
+            if (animate) {
+                html.classList.add('theme-transition');
+                themeFlash.classList.add('active');
+                themeToggle.classList.add('pulse');
+
+                setTimeout(() => {
+                    html.classList.remove('theme-transition');
+                    themeFlash.classList.remove('active');
+                    themeToggle.classList.remove('pulse');
+                }, 600);
+            }
+
+            if (theme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        applyTheme(getThemePreference(), false);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
+        });
+
+        // Initialize map
+        const map = L.map('map').setView([-6.2088, 106.8456], 12);
+
+        // Tile layer based on theme
+        function updateMapTiles() {
+            const isDark = html.classList.contains('dark');
+            const tileUrl = isDark
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+            map.eachLayer(layer => {
+                if (layer instanceof L.TileLayer) map.removeLayer(layer);
+            });
+
+            L.tileLayer(tileUrl, {
+                attribution: '&copy; OpenStreetMap, &copy; CARTO',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        updateMapTiles();
+
+        // Update tiles when theme changes
+        const observer = new MutationObserver(() => updateMapTiles());
+        observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+
+        // Layer groups
+        let routeLayer = L.layerGroup().addTo(map);
+        let stopsLayer = L.layerGroup().addTo(map);
+        let poisLayer = L.layerGroup().addTo(map);
+
+        // Mode colors
+        const modeColors = {
+            'MRT': '#e63946',
+            'LRT': '#f4a261',
+            'TJ': '#2a9d8f',
+            'WALK': '#8b5cf6',
+            'ALL': '#0ea5e9'
+        };
+
+        // Format time as "X jam, Y menit, Z detik"
+        function formatTime(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            const seconds = Math.round((totalMinutes % 1) * 60);
+
+            let parts = [];
+            if (hours > 0) parts.push(`${hours} jam`);
+            if (minutes > 0) parts.push(`${minutes} menit`);
+            if (seconds > 0 && hours === 0) parts.push(`${seconds} detik`);
+
+            return parts.join(', ') || '0 menit';
+        }
+
+        const API_BASE = '';
+
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                // Load stops
+                const stopsRes = await fetch(`${API_BASE}/api/stops?limit=500`);
+                const stopsData = await stopsRes.json();
+                populateStartStops(stopsData.stops);
+
+                // Load destinations
+                const destRes = await fetch(`${API_BASE}/api/destinations`);
+                const destData = await destRes.json();
+                populatePOIs(destData);
+                addPOIMarkers(destData);
+
+                // Load summary for footer
+                const summaryRes = await fetch(`${API_BASE}/api/summary`);
+                const summary = await summaryRes.json();
+                if (summary.mrt_count) document.getElementById('footer-mrt').textContent = summary.mrt_count;
+                if (summary.lrt_count) document.getElementById('footer-lrt').textContent = summary.lrt_count;
+                if (summary.tj_count) document.getElementById('footer-tj').textContent = summary.tj_count;
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Gagal memuat data. Pastikan server berjalan.');
+            }
+        }
+
+        function populateStartStops(stops) {
+            const select = document.getElementById('start-stop');
+
+            const groups = { 'MRT': [], 'LRT': [], 'TJ': [] };
+            stops.forEach(stop => {
+                const mode = stop.id.includes('MRT') ? 'MRT' :
+                    stop.id.includes('LRT') ? 'LRT' : 'TJ';
+                groups[mode].push(stop);
+            });
+
+            Object.entries(groups).forEach(([mode, modeStops]) => {
+                if (modeStops.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = mode;
+                    modeStops.slice(0, 50).forEach(stop => {
+                        const option = document.createElement('option');
+                        option.value = stop.id;
+                        option.textContent = stop.name;
+                        optgroup.appendChild(option);
+                    });
+                    select.appendChild(optgroup);
+                }
+            });
+        }
+
+        function populatePOIs(destinations) {
+            const container = document.getElementById('poi-list');
+            container.innerHTML = '';
+
+            const icons = {
+                'Recreation': '🎢',
+                'Historical': '🏛️',
+                'Cultural': '🎭',
+                'Shopping': '🛍️',
+                'Sports': '⚽'
+            };
+
+            destinations.forEach(dest => {
+                const div = document.createElement('div');
+                div.className = 'relative';
+                div.innerHTML = `
+                    <input type="checkbox" id="poi-${dest.slug}" value="${dest.slug}" class="poi-checkbox peer sr-only" data-region="${dest.region}">
+                    <label for="poi-${dest.slug}" class="poi-label flex items-center gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 cursor-pointer transition-all hover:border-slate-300 dark:hover:border-slate-500 peer-checked:border-primary-500 peer-checked:bg-primary-500/10">
+                        <span class="text-lg">${icons[dest.category] || '📍'}</span>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-sm font-medium block truncate text-slate-900 dark:text-white">${dest.name}</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">${dest.region}</span>
+                        </div>
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+
+            // Update count on change
+            container.addEventListener('change', updatePOICount);
+        }
+
+        function updatePOICount() {
+            const checkedBoxes = document.querySelectorAll('.poi-checkbox:checked');
+            const count = checkedBoxes.length;
+            document.getElementById('poi-count').textContent = `${count} dipilih`;
+
+            // Update chips display
+            const chipsContainer = document.getElementById('selected-chips');
+            const clearBtn = document.getElementById('clear-selection-btn');
+
+            chipsContainer.innerHTML = '';
+
+            checkedBoxes.forEach(cb => {
+                const label = cb.closest('.relative').querySelector('.poi-label span.text-sm');
+                const name = label ? label.textContent : cb.value;
+
+                const chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded-full transition-all hover:bg-primary-200 dark:hover:bg-primary-900/60';
+                chip.innerHTML = `
+                    ${name}
+                    <button type="button" onclick="removeDestination('${cb.value}')" class="ml-0.5 hover:text-red-500 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                `;
+                chipsContainer.appendChild(chip);
+            });
+
+            // Show/hide clear button
+            if (count > 0) {
+                clearBtn.classList.remove('hidden');
+                clearBtn.classList.add('flex');
+            } else {
+                clearBtn.classList.add('hidden');
+                clearBtn.classList.remove('flex');
+            }
+        }
+
+        // Remove a specific destination
+        function removeDestination(slug) {
+            const checkbox = document.getElementById(`poi-${slug}`);
+            if (checkbox) {
+                checkbox.checked = false;
+                updatePOICount();
+            }
+        }
+
+        // Clear all selected destinations
+        function clearAllDestinations() {
+            document.querySelectorAll('.poi-checkbox:checked').forEach(cb => {
+                cb.checked = false;
+            });
+            updatePOICount();
+        }
+
+        // Initialize clear button listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const clearBtn = document.getElementById('clear-selection-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearAllDestinations);
+            }
+        });
+
+        function addPOIMarkers(destinations) {
+            poisLayer.clearLayers();
+
+            const icons = {
+                'Recreation': '🎢',
+                'Historical': '🏛️',
+                'Cultural': '🎭',
+                'Shopping': '🛍️',
+                'Sports': '⚽'
+            };
+
+            destinations.forEach(dest => {
+                if (!dest.lat || !dest.lon) return;
+
+                const icon = L.divIcon({
+                    html: `<div class="w-8 h-8 bg-white dark:bg-slate-800 border-2 border-primary-500 rounded-full flex items-center justify-center text-lg shadow-lg">${icons[dest.category] || '📍'}</div>`,
+                    className: '',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
+                });
+
+                L.marker([dest.lat, dest.lon], { icon })
+                    .bindPopup(`<b>${dest.name}</b><br>${dest.region}`)
+                    .addTo(poisLayer);
+            });
+        }
+
+        // Region filter
+        document.getElementById('region-filter').addEventListener('change', function () {
+            const region = this.value;
+            document.querySelectorAll('#poi-list > div').forEach(div => {
+                const checkbox = div.querySelector('.poi-checkbox');
+                const destRegion = checkbox.dataset.region;
+                div.style.display = (!region || destRegion === region) ? 'block' : 'none';
+            });
+        });
+
+        // Search route
+        async function searchRoute() {
+            const startStop = document.getElementById('start-stop').value;
+            const selectedPOIs = Array.from(document.querySelectorAll('.poi-checkbox:checked')).map(cb => cb.value);
+            const mode = document.querySelector('input[name="mode"]:checked')?.value || 'ALL';
+
+            if (!startStop) {
+                showError('Pilih titik awal terlebih dahulu');
+                return;
+            }
+
+            if (selectedPOIs.length === 0) {
+                showError('Pilih minimal satu destinasi');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/route`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        start: { type: 'stop_id', value: startStop },
+                        selected_places: selectedPOIs,
+                        mode: mode,
+                        strategy: selectedPOIs.length > 1 ? 'multi' : 'single'
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Gagal mencari rute');
+                }
+
+                const route = await response.json();
+                displayRoute(route);
+
+            } catch (error) {
+                console.error('Route error:', error);
+                // Check if it's a "no route" error
+                if (error.message.includes('rute') || error.message.includes('route') || error.message.includes('tidak')) {
+                    showNoRouteModal();
+                } else {
+                    showError(error.message);
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // No Route Modal functions - with animations
+        function showNoRouteModal(title, message) {
+            const modal = document.getElementById('no-route-modal');
+            const content = document.getElementById('no-route-modal-content');
+
+            // Update message if provided
+            if (title) {
+                document.getElementById('modal-title').textContent = title;
+            }
+            if (message) {
+                document.getElementById('modal-message').textContent = message;
+            }
+
+            // Show modal with animation
+            modal.classList.remove('hidden');
+            // Trigger reflow for animation
+            modal.offsetHeight;
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+
+            if (content) {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }
+        }
+
+        function closeNoRouteModal() {
+            const modal = document.getElementById('no-route-modal');
+            const content = document.getElementById('no-route-modal-content');
+
+            // Animate out
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+
+            if (content) {
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+            }
+
+            // Hide after animation completes
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Switch to "Semua" mode from modal
+        function switchToAllMode() {
+            const allModeRadio = document.querySelector('input[name="mode"][value="ALL"]');
+            if (allModeRadio) {
+                allModeRadio.checked = true;
+            }
+            closeNoRouteModal();
+        }
+
+        // Enhanced loading functions
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            const searchBtn = document.getElementById('search-btn');
+            const searchBtnText = document.getElementById('search-btn-text');
+
+            if (show) {
+                overlay.classList.remove('hidden');
+                searchBtn.disabled = true;
+                if (searchBtnText) searchBtnText.textContent = 'Mencari Rute...';
+            } else {
+                overlay.classList.add('hidden');
+                searchBtn.disabled = false;
+                if (searchBtnText) searchBtnText.textContent = 'Cari Rute';
+            }
+        }
+
+        function displayRoute(route) {
+            routeLayer.clearLayers();
+            stopsLayer.clearLayers();
+
+            // Draw route line with different styles for walk vs transport
+            if (route.geometry && route.geometry.length > 0) {
+                // Separate walking and transit segments
+                let transitCoords = [];
+                let walkingSegments = [];
+
+                // Analyze legs to identify walking segments
+                if (route.legs && route.legs.length > 0) {
+                    let geoIdx = 0;
+                    route.legs.forEach((leg, idx) => {
+                        const isWalk = leg.mode === 'WALK' || leg.is_walk;
+
+                        // Get coordinates for this leg
+                        if (geoIdx < route.geometry.length - 1) {
+                            const startCoord = route.geometry[geoIdx];
+                            const endCoord = route.geometry[geoIdx + 1] || route.geometry[geoIdx];
+
+                            if (isWalk) {
+                                walkingSegments.push([startCoord, endCoord]);
+                            } else {
+                                transitCoords.push(startCoord);
+                            }
+                            geoIdx++;
+                        }
+                    });
+                    // Add last coordinate for transit
+                    if (route.geometry.length > 0 && transitCoords.length > 0) {
+                        const lastTransitIdx = route.geometry.length - walkingSegments.length - 1;
+                        if (lastTransitIdx >= 0 && lastTransitIdx < route.geometry.length) {
+                            transitCoords.push(route.geometry[lastTransitIdx]);
+                        }
+                    }
+                } else {
+                    transitCoords = route.geometry;
+                }
+
+                // Draw transit route (solid line)
+                if (transitCoords.length > 1) {
+                    // Background/outline
+                    L.polyline(transitCoords, {
+                        color: '#1e3a5f',
+                        weight: 8,
+                        opacity: 0.6,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }).addTo(routeLayer);
+
+                    // Main colored route
+                    L.polyline(transitCoords, {
+                        color: '#0ea5e9',
+                        weight: 5,
+                        opacity: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }).addTo(routeLayer);
+                }
+
+                // Draw walking segments (dashed purple line)
+                walkingSegments.forEach(segment => {
+                    if (segment.length >= 2) {
+                        // Walking outline
+                        L.polyline(segment, {
+                            color: '#5b21b6',
+                            weight: 6,
+                            opacity: 0.4,
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }).addTo(routeLayer);
+
+                        // Walking dashed line
+                        L.polyline(segment, {
+                            color: '#8b5cf6',
+                            weight: 4,
+                            opacity: 1,
+                            dashArray: '8, 12',
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }).addTo(routeLayer);
+                    }
+                });
+
+                // Draw animated dots along transit route
+                if (transitCoords.length > 1) {
+                    const animatedRoute = L.polyline(transitCoords, {
+                        color: '#38bdf8',
+                        weight: 3,
+                        opacity: 0.9,
+                        dashArray: '5, 15',
+                        lineCap: 'round'
+                    }).addTo(routeLayer);
+
+                    let dashOffset = 0;
+                    setInterval(() => {
+                        dashOffset -= 1;
+                        animatedRoute.setStyle({ dashOffset: dashOffset.toString() });
+                    }, 50);
+                }
+
+                // Fit map to route
+                const bounds = L.latLngBounds(route.geometry);
+                map.fitBounds(bounds, { padding: [50, 50] });
+
+                // Add start marker
+                if (route.start_stop && route.start_stop.lat) {
+                    const startIcon = L.divIcon({
+                        html: `<div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-4 border-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        </div>`,
+                        className: '',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
+                    });
+
+                    L.marker([route.start_stop.lat, route.start_stop.long], { icon: startIcon })
+                        .bindPopup(`<b>Start:</b> ${route.start_stop.name}`)
+                        .addTo(stopsLayer);
+                }
+
+                // Add final destination marker (actual destination, not just nearest stop)
+                if (route.final_destination && route.final_destination.lat && route.final_destination.lon) {
+                    const destIcon = L.divIcon({
+                        html: `<div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-4 border-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                        </div>`,
+                        className: '',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
+                    });
+
+                    L.marker([route.final_destination.lat, route.final_destination.lon], { icon: destIcon })
+                        .bindPopup(`<b>Tujuan:</b> ${route.final_destination.name}`)
+                        .addTo(stopsLayer);
+                } else if (route.end_stop && route.end_stop.lat) {
+                    // Fallback to end stop if no final destination
+                    const endIcon = L.divIcon({
+                        html: `<div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-4 border-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                        </div>`,
+                        className: '',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40]
+                    });
+
+                    L.marker([route.end_stop.lat, route.end_stop.long], { icon: endIcon })
+                        .bindPopup(`<b>Finish:</b> ${route.end_stop.name}`)
+                        .addTo(stopsLayer);
+                }
+
+                // Add transfer markers
+                if (route.transfers && route.transfers.length > 0) {
+                    route.transfers.forEach(transfer => {
+                        if (transfer.lat && transfer.long) {
+                            const transferIcon = L.divIcon({
+                                html: `<div class="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">T</div>`,
+                                className: '',
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            });
+
+                            L.marker([transfer.lat, transfer.long], { icon: transferIcon })
+                                .bindPopup(`<b>Transfer:</b> ${transfer.name}`)
+                                .addTo(stopsLayer);
+                        }
+                    });
+                }
+            }
+
+            showRoutePanel(route);
+        }
+
+        function showRoutePanel(route) {
+            const panel = document.getElementById('route-panel');
+            const summaryDiv = document.getElementById('route-summary');
+            const legsDiv = document.getElementById('route-legs');
+
+            // Summary cards with more info
+            const stopsCount = route.stops_passed?.length || route.summary?.stops_count || 0;
+            const transfersCount = route.transfers?.length || route.summary?.transfers_count || 0;
+
+            summaryDiv.innerHTML = `
+                <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-3">
+                    <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">${route.summary?.total_distance_km?.toFixed(1) || 0} km</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Total Jarak</div>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    <div class="text-xl font-bold text-amber-600 dark:text-amber-400">${formatTime(route.summary?.total_time_minutes || 0)}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Estimasi Waktu</div>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">Rp ${(route.summary?.total_cost_idr || 0).toLocaleString()}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-400">Total Biaya</div>
+                </div>
+            `;
+
+            // Build legs HTML with proper formatting
+            let legsHTML = '';
+
+            // Get final destination name
+            const finalDestName = route.final_destination?.name || route.end_stop?.name || 'Tujuan';
+            const hasWalking = route.legs?.some(leg => leg.mode === 'WALK' || leg.is_walk);
+
+            // Show start and end stops
+            legsHTML += `
+                <div class="mb-3 p-3 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">A</span>
+                        <span class="font-medium text-slate-900 dark:text-white">${route.start_stop?.name || 'Start'}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm mt-2">
+                        <span class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">B</span>
+                        <span class="font-medium text-slate-900 dark:text-white">${finalDestName}</span>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+                        <span>${stopsCount} stasiun/halte</span>
+                        <span>•</span>
+                        <span>${transfersCount} transfer</span>
+                        ${hasWalking ? '<span>•</span><span class="text-purple-500">🚶 Termasuk jalan kaki</span>' : ''}
+                    </div>
+                </div>
+            `;
+
+            // Show stops passed if available
+            if (route.stops_passed && route.stops_passed.length > 0) {
+                legsHTML += `
+                    <div class="mb-3">
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-2">Halte/Stasiun Dilalui</div>
+                        <div class="flex flex-wrap gap-1">
+                            ${route.stops_passed.slice(0, 15).map((stop, idx) => `
+                                <span class="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    ${idx + 1}. ${stop}
+                                </span>
+                            `).join('')}
+                            ${route.stops_passed.length > 15 ? `<span class="text-xs px-2 py-1 text-slate-500">+${route.stops_passed.length - 15} lainnya</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Show detailed legs
+            if (route.legs && route.legs.length > 0) {
+                legsHTML += `<div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-2">Detail Perjalanan</div>`;
+                legsHTML += route.legs.map(leg => {
+                    const modeColor = modeColors[leg.mode] || '#64748b';
+                    const isWalk = leg.mode === 'WALK' || leg.is_walk;
+                    const timeMin = leg.time_minutes ? Math.round(leg.time_minutes) : Math.round((leg.distance_km || 0) * 3);
+                    return `
+                        <div class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50 ${isWalk ? 'border-l-4 border-walk' : ''}">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style="background: ${modeColor}">
+                                ${leg.mode}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium truncate text-slate-900 dark:text-white">${leg.from_name}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 my-0.5">↓ ${leg.line || leg.mode} • ${timeMin} menit</div>
+                                <div class="text-sm font-medium truncate text-slate-900 dark:text-white">${leg.to_name}</div>
+                            </div>
+                            <div class="text-right text-xs shrink-0">
+                                <div class="text-slate-600 dark:text-slate-300">${(leg.distance_km || 0).toFixed(2)} km</div>
+                                <div class="text-green-600 dark:text-green-400">Rp ${(leg.cost_idr || 0).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            legsDiv.innerHTML = legsHTML || '<p class="text-slate-500 text-sm">Tidak ada detail rute ditemukan</p>';
+            panel.classList.remove('hidden');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+
+        // Event listeners
+        document.getElementById('search-btn').addEventListener('click', searchRoute);
+        document.getElementById('close-panel').addEventListener('click', () => {
+            document.getElementById('route-panel').classList.add('hidden');
+        });
+
+        // Chat Assistant Logic
+        function toggleChat() {
+            const panel = document.getElementById('chat-panel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                document.getElementById('chat-input').focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Clear input
+            input.value = '';
+
+            // Add user message
+            addMessage(message, 'user');
+
+            // Show loading
+            const loadingId = addMessage('...', 'bot', true);
+
+            try {
+                const response = await fetch('/api/chat/fare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                // Remove loading
+                document.getElementById(loadingId).remove();
+
+                // Add bot response
+                addMessage(data.response, 'bot');
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                document.getElementById(loadingId).remove();
+                addMessage('Maaf, terjadi kesalahan pada server.', 'bot');
+            }
+        }
+
+        function addMessage(text, sender, isLoading = false) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex items-start ${sender === 'user' ? 'justify-end' : ''}`;
+            const id = 'msg-' + Date.now();
+            div.id = id;
+
+            // Format MD-like simple formatting (bold, list)
+            let formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/### (.*?)\n/g, '<h4 class="font-bold text-lg mb-2 text-primary-700">$1</h4>')
+                .replace(/\n- (.*?)/g, '<br>• $1')
+                .replace(/\n\d\. (.*?)/g, '<br>$&') // Keep numbered lists
+                .replace(/\n/g, '<br>');
+
+            const bubbleClass = sender === 'user'
+                ? 'bg-primary-600 text-white rounded-tr-none'
+                : 'bg-slate-100 dark:bg-slate-700 rounded-tl-none dark:text-white';
+
+            div.innerHTML = `
+                <div class="${bubbleClass} p-3 rounded-lg text-sm max-w-[85%] shadow-sm">
+                    ${formattedText}
+                </div>
+            `;
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        // Initialize
+        loadInitialData();
+    </script>
+</body>
+
+</html>
